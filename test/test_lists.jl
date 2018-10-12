@@ -1,5 +1,5 @@
 using VectorBackedLists
-using Base.Test
+using Test
 
 d = [1,2,3,4]
 dl = list(d)
@@ -18,8 +18,18 @@ insert_after!(dl, q, 4)
 insert_after!(dl, t, 100)
 @test collect(dl) == [1,3,2,100,4,4]
 
-s100 = start(dl); for i in 1:3; _, s100 = next(dl, s100); end
-s3 = start(dl); for i in 1:1; _, s3 = next(dl, s3); end
+s100 = start(dl)
+for i in 1:3
+    global s100
+    _, s100 = next(dl, s100)
+end
+
+s3 = start(dl)
+for i in 1:1
+    global s3
+    _, s3 = next(dl, s3)
+end
+
 move_before!(dl, s100, s3)
 @test collect(dl) == [1,100,3,2,4,4]
 
@@ -32,6 +42,7 @@ a = [1,2,3,4]
 l = list(a)
 s, i = start(l), 1
 while !done(l,s)
+    global s, i
     @test l[s] == a[i]
     i += 1
     _, s = next(l,s)
