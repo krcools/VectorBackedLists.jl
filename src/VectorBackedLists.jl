@@ -2,6 +2,8 @@ module VectorBackedLists
 
 export list, insert_after!, move_before!, prev, sublist, advance
 
+export start, next, done
+
 struct Node{T}
     value::T    # index into value of the accompanying value
     next::Int   # index into nodes of the next node
@@ -17,9 +19,13 @@ struct VectorBackedList{T,S<:AbstractVector{T}}
 end
 
 Base.eltype(::Type{VectorBackedList{T,S}}) where {S,T} = T
-Base.start(list::VectorBackedList) = list.nodes[list.head].next
-Base.next(list::VectorBackedList, state) = (list.data[list.nodes[state].value], list.nodes[state].next)
-Base.done(list::VectorBackedList, state) = state == list.tail
+start(list::VectorBackedList) = list.nodes[list.head].next
+next(list::VectorBackedList, state) = (list.data[list.nodes[state].value], list.nodes[state].next)
+done(list::VectorBackedList, state) = state == list.tail
+function Base.iterate(list::VectorBackedList, state=start(list))
+    done(list, state) && return nothing
+    return next(list, state)
+end
 
 """
     done(iterable) -> state
@@ -27,7 +33,7 @@ Base.done(list::VectorBackedList, state) = state == list.tail
 Produces an iterator state for which `done(iterable,state) == true`. Cf. to the
 c++ end() api.
 """
-Base.done(list::VectorBackedList) = list.tail
+done(list::VectorBackedList) = list.tail
 Base.setindex!(list::VectorBackedList, v, state) = (list.data[list.nodes[state].value] = v)
 Base.getindex(list::VectorBackedList, state) = list.data[list.nodes[state].value]
 
@@ -64,7 +70,7 @@ state of the underlying container.
 """
 function list(data)
     n = length(data)
-    nodes = Vector{Node}(n+2)
+    nodes = Vector{Node}(undef, n+2)
     nodes[1] = Node(0,2,0,1)
     for i in 2:n+1; nodes[i] = Node(i-1, i+1, i-1, i); end
     nodes[end] = Node(0,0,n+1,n+2)
