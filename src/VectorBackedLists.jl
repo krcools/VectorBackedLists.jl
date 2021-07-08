@@ -8,7 +8,6 @@ struct Node{T}
     value::T    # index into value of the accompanying value
     next::Int   # index into nodes of the next node
     prev::Int   # index into nodes of the previous node
-    #idx::Int    # index into nodes of the current node
 end
 
 struct VectorBackedList{T,S<:AbstractVector{T}}
@@ -40,19 +39,13 @@ Base.getindex(list::VectorBackedList, state) = list.data[list.nodes[state].value
 advance(list::VectorBackedList, state) = next(list, state)[2]
 Base.length(sl::VectorBackedList) = (n = 0; for x in sl; n += 1; end; n)
 
-# # sublist iteration
-# struct SubList{L<:VectorBackedList}
-#     parent::L
-#     head::Int
-#     done::Int
-# end
-
 function sublist(ls, b, e)
     VectorBackedList{eltype(ls),typeof(ls.data)}(
         ls.data,
         ls.nodes,
         ls.nodes[b].prev,
-        e)
+        e
+    )
 end
 
 """

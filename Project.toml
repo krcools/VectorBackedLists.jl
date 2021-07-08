@@ -1,0 +1,7 @@
+name = "VectorBackedLists"
+uuid = "64f724f3-1cac-477b-9517-c036ece31ef8"
+authors = ["Kristof Cools <krcools@gmail.com>"]
+version = "0.1.0"
+
+[compat]
+julia = 1.0
