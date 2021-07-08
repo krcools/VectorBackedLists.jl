@@ -24,6 +24,9 @@ insert_after!(dl, q, 4)
 insert_after!(dl, t, 100)
 @assert collect(dl) == [1,3,2,100,4,4]
 
+insert_before!(dl, t, -8)
+@assert collect(dl) == [1,3,-8,2,100,4,4]
+
 for v in dl
     println(v)
 end
