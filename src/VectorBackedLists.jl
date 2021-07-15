@@ -6,15 +6,15 @@ export start, next, done
 
 struct Node{T}
     value::T    # index into value of the accompanying value
-    next::Int   # index into nodes of the next node
-    prev::Int   # index into nodes of the previous node
+    next::UInt32 # index into nodes of the next node
+    prev::UInt32 # index into nodes of the previous node
 end
 
 struct VectorBackedList{T,S<:AbstractVector{T}}
     data::S
-    nodes::Vector{Node{Int}}
-    head::Int
-    tail::Int
+    nodes::Vector{Node{UInt32}}
+    head::UInt32
+    tail::UInt32
 end
 
 Base.eltype(::Type{VectorBackedList{T,S}}) where {S,T} = T
@@ -30,7 +30,7 @@ end
     done(iterable) -> state
 
 Produces an iterator state for which `done(iterable,state) == true`. Cf. to the
-c++ end() api.
+C++ end() API.
 """
 done(list::VectorBackedList) = list.tail
 Base.setindex!(list::VectorBackedList, v, state) = (list.data[list.nodes[state].value] = v)
