@@ -71,9 +71,9 @@ function list(data)
     n = length(data)
     nodes = Vector{Node}(undef, n+2)
     nodes[1] = Node(0,2,0)
-    for i in 2:n+1; nodes[i] = Node(i-1, i+1, i-1); end
+    for i in 2:n+1; nodes[i] = Node(UInt(i-1), UInt(i+1), UInt(i-1)); end
     nodes[end] = Node(0,0,n+1)
-    VectorBackedList{eltype(data), typeof(data)}(data, nodes, 1, n+2)
+    VectorBackedList{eltype(data), typeof(data)}(data, nodes, UInt32(1), UInt32(n+2))
 end
 
 """
