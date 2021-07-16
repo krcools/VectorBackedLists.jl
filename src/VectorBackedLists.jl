@@ -4,15 +4,15 @@ export list, insert_after!, move_before!, prev, sublist, advance
 
 export start, next, done
 
-struct Node{T}
-    value::T    # index into value of the accompanying value
-    next::UInt32 # index into nodes of the next node
-    prev::UInt32 # index into nodes of the previous node
+struct Node
+    value::UInt32 # index into value of the accompanying value
+    next::UInt32  # index into nodes of the next node
+    prev::UInt32  # index into nodes of the previous node
 end
 
 struct VectorBackedList{T,S<:AbstractVector{T}}
     data::S
-    nodes::Vector{Node{UInt32}}
+    nodes::Vector{Node}
     head::UInt32
     tail::UInt32
 end
