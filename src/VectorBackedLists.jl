@@ -4,20 +4,20 @@ export list, insert_after!, move_before!, prev, sublist, advance
 
 export start, next, done
 
-struct Node{T}
-    value::T    # index into value of the accompanying value
-    next::Int   # index into nodes of the next node
-    prev::Int   # index into nodes of the previous node
+struct Node{I}
+    value::I    # index into list data
+    next::I     # index into nodes of the next node
+    prev::I     # index into nodes of the previous node
 end
 
-struct VectorBackedList{T,S<:AbstractVector{T}}
+struct VectorBackedList{T,S<:AbstractVector{T},I}
     data::S
-    nodes::Vector{Node{Int}}
-    head::Int
-    tail::Int
+    nodes::Vector{Node{I}}
+    head::I
+    tail::I
 end
 
-Base.eltype(::Type{VectorBackedList{T,S}}) where {S,T} = T
+Base.eltype(::VectorBackedList{T}) where {T} = T
 start(list::VectorBackedList) = list.nodes[list.head].next
 next(list::VectorBackedList, state) = (list.data[list.nodes[state].value], list.nodes[state].next)
 done(list::VectorBackedList, state) = state == list.tail
@@ -27,20 +27,29 @@ function Base.iterate(list::VectorBackedList, state=start(list))
 end
 
 """
-    done(iterable) -> state
+    advance(iterable, state) -> next_state
+
+Advances the iteration state without producing the associated value. It holds that
+
+    next(iterable, state)[2] == advance(iterable, state)
+"""
+advance(list::VectorBackedList, state) = list.nodes[state].next
+
+"""
+done(iterable) -> state
 
 Produces an iterator state for which `done(iterable,state) == true`. Cf. to the
 c++ end() api.
 """
 done(list::VectorBackedList) = list.tail
-Base.setindex!(list::VectorBackedList, v, state) = (list.data[list.nodes[state].value] = v)
-Base.getindex(list::VectorBackedList, state) = list.data[list.nodes[state].value]
+Base.setindex!(list::VectorBackedList{T,S,I}, v::T, state::I) where {T,S,I} = (list.data[list.nodes[state].value] = v)
+Base.getindex(list::VectorBackedList{T,S,I}, state::I) where {T,S,I} = list.data[list.nodes[state].value]
 
-advance(list::VectorBackedList, state) = next(list, state)[2]
-Base.length(sl::VectorBackedList) = (n = 0; for x in sl; n += 1; end; n)
+Base.IteratorSize(list::VectorBackedList) = Base.SizeUnknown()
+# Base.length(sl::VectorBackedList) = (n = 0; for x in sl; n += 1; end; n)
 
-function sublist(ls, b, e)
-    VectorBackedList{eltype(ls),typeof(ls.data)}(
+function sublist(ls::VectorBackedList{T,S,I}, b, e) where {T,S,I}
+    VectorBackedList{T,S,I}(
         ls.data,
         ls.nodes,
         ls.nodes[b].prev,
@@ -63,17 +72,29 @@ n == s
 prev(list, state) = (list.data[list.nodes[state].value], list.nodes[state].prev)
 
 """
+    list(data, [index_type=eltype(eachindex(data))])
+
 Create a list from an indexable container. The list provided a view on the container,
 so any mutations realised through calling the list API will be reflected in the
 state of the underlying container.
+
+If memory consumption is a priority, the iterator type can be forced to a smaller
+sized integer. Be careful: it is possible that the data passed is longer than the
+largest value representable for the iterator type. In this case, the list implementation
+fails quietly and its behaviour will be undefined.
 """
-function list(data)
+function list(data, index_type=eltype(eachindex(data)))
+
+    T = eltype(data)
+    S = typeof(data)
+    I = index_type
     n = length(data)
-    nodes = Vector{Node}(undef, n+2)
-    nodes[1] = Node(0,2,0)
-    for i in 2:n+1; nodes[i] = Node(i-1, i+1, i-1); end
-    nodes[end] = Node(0,0,n+1)
-    VectorBackedList{eltype(data), typeof(data)}(data, nodes, 1, n+2)
+
+    nodes = Vector{Node{I}}(undef, n+2)
+    nodes[1] = Node{I}(0,2,0)
+    for i in 2:n+1; nodes[i] = Node{I}(i-1, i+1, i-1); end
+    nodes[end] = Node{I}(0,0,n+1)
+    VectorBackedList{T, S, I}(data, nodes, 1, n+2)
 end
 
 """

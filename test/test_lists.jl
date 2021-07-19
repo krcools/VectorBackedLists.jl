@@ -54,3 +54,21 @@ l[s] = 20
 
 push!(l,21)
 @test collect(l) == [20,2,3,4,21]
+
+# Test convenience API
+list2 = list([:a,:b,:c])
+
+it = start(list2)
+vect2 = Vector{eltype(list2)}()
+while it != done(list2)
+    val = list2[it]
+    push!(vect2, val)
+    global it = advance(list2,it)
+end
+
+@test vect2 == collect(list2)
+
+# Test small types for indices
+list3 = list([:a,:b,:c], Int32)
+vect3 = collect(list3)
+@test vect3 == [:a,:b,:c]
